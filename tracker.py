@@ -22,10 +22,11 @@ mood_score = [i for i in range(1, mood_max + 1)]
 # CONST
 BTN_CONFIG = {"padx" : 10, "pady" : 20, "ipadx" : 20, "ipady" : 10, "anchor" : "w", "side" : "left"}
 INSIGHTS_VALUE = {"padx" : 20, "side" : "top", "anchor" : "w"}
-INSIGHTS_TITLE = {"padx" : 20, "pady" : (20, 5), "side" : "top", "anchor" : "w"}
+INSIGHTS_TITLE = {"padx" : 20, "pady" : 5, "side" : "top", "anchor" : "w"}
+INSIGHTS_OPTION = ["LOWEST MOOD", "HIGHEST MOOD", "MONTH AVR.", "YEAR AVR."]
 COLOURS = {"white" : "#FFFFFF", "dark" : "#222222", "magenta" : "#FF89FF", "lighter_dark" : "#3B3B3B"}
 TITLE_FONT = {"font" : ("Helvetica", 16, "bold"), "anchor" :"w"}
-VALUE_FONT = {"font" : ("Helvetica", 14), "anchor" :"w"}
+VALUE_FONT = {"font" : ("Helvetica", 16), "anchor" :"w"}
 LABELS = {"y" : "MOOD LEVEL", "x" : "DAY OF MONTH"}
 TICKS = {"axis" : "both", "color" : COLOURS["white"], "labelcolor" : COLOURS["white"]}
 SUB_ADJUST = {"left" : 0.05, "right" : 0.95, "top" : 0.95, "bottom" : 0.1}
@@ -46,8 +47,8 @@ class Data:
         self.axis = None
 
     def select_options(self):
-        self.month = int(month_selection.get())
-        self.year = int(year_selection.get())
+        self.month = int(month_choice.get())
+        self.year = int(year_choice.get())
         self.date = int(date_choice.get())
         self.mood = int(mood_choice.get())
 
@@ -84,8 +85,6 @@ class Data:
 
         # save
         self.df.to_csv(filename, index=False)
-
-        print(self.df.head(100))
 
     def plot_configuration(self, xticks=range(1, 32), yticks=range(1, 11), xlim=None, ylim=(0, 10)):
         self.axis.set_ylabel(LABELS["y"], color=COLOURS["white"])
@@ -136,11 +135,17 @@ class Data:
 
     def get_values(self):
         selections = df[(df["YEAR"] == self.year) & (df["MONTH"] == self.month)]
-        mean_result = round(selections["MOOD_LVL"].mean(), 1) if not selections.empty else 0.0
+        year_selections = df[(df["YEAR"] == self.year)]
+
         max_result = selections["MOOD_LVL"].max() if not selections.empty else 0.0
+        min_result = selections["MOOD_LVL"].min() if not selections.empty else 0.0
+        mean_result = round(selections["MOOD_LVL"].mean(), 1) if not selections.empty else 0.0
+        year_mean_result = round(year_selections["MOOD_LVL"].mean(), 1) if not year_selections.empty else 0.0
 
         mean_mood.set(mean_result)
+        year_mean.set(year_mean_result)
         max_mood.set(max_result)
+        min_mood.set(min_result)
 
 def date_options_update(*args):
     month = int(month_choice.get())
@@ -166,18 +171,29 @@ d = Data()
 
 # insights configuration
 insights_frame = ttk.Frame(root)
-mean_mood, max_mood = ttk.StringVar(), ttk.StringVar()
+max_mood, min_mood, mean_mood, year_mean = ttk.StringVar(), ttk.StringVar(), ttk.StringVar(), ttk.StringVar()
 insights_frame.pack(pady=20)
 
 # insights initiation
-mean_title_label = ttk.Label(insights_frame, text="MOOD AVR.", **TITLE_FONT)
-max_title_label = ttk.Label(insights_frame, text="MOOD HIGHEST", **TITLE_FONT)
-mean_mood_label = ttk.Label(insights_frame, textvariable=mean_mood, **VALUE_FONT)
+min_mood_title_label = ttk.Label(insights_frame, text=INSIGHTS_OPTION[0], **TITLE_FONT)
+max_mood_title_label = ttk.Label(insights_frame, text=INSIGHTS_OPTION[1], **TITLE_FONT)
+mean_mood_title_label = ttk.Label(insights_frame, text=INSIGHTS_OPTION[2], **TITLE_FONT)
+year_mean_title_label = ttk.Label(insights_frame, text=INSIGHTS_OPTION[3], **TITLE_FONT)
+
+min_mood_label = ttk.Label(insights_frame, textvariable=min_mood, **VALUE_FONT)
 max_mood_label = ttk.Label(insights_frame, textvariable=max_mood, **VALUE_FONT)
-mean_title_label.grid(row=0, column=0, padx=20, pady=20)
-max_title_label.grid(row=0, column=1, padx=20, pady=20)
-mean_mood_label.grid(row=1, column=0, padx=20, pady=20)
+mean_mood_label = ttk.Label(insights_frame, textvariable=mean_mood, **VALUE_FONT)
+year_mean_label = ttk.Label(insights_frame, textvariable=year_mean, **VALUE_FONT)
+
+min_mood_title_label.grid(row=0, column=0, padx=20, pady=20)
+max_mood_title_label.grid(row=0, column=1, padx=20, pady=20)
+mean_mood_title_label.grid(row=0, column=2, padx=20, pady=20)
+year_mean_title_label.grid(row=0, column=3, padx=20, pady=20)
+
+min_mood_label.grid(row=1, column=0, padx=20, pady=20)
 max_mood_label.grid(row=1, column=1, padx=20, pady=20)
+mean_mood_label.grid(row=1, column=2, padx=20, pady=20)
+year_mean_label.grid(row=1, column=3, padx=20, pady=20)
 
 #figure configuration
 figure_frame = ttk.Frame(root)
@@ -190,15 +206,14 @@ figure_frame.pack()
 # selection configuration
 selection_frame = ttk.Frame(root)
 year_choice, month_choice, date_choice = ttk.StringVar(), ttk.StringVar(), ttk.StringVar()
-year_choice.set(strftime("%Y")), month_choice.set(strftime("%m")), date_choice.set(strftime("%d"))
-month_selection, year_selection = ttk.StringVar(), ttk.StringVar()
-month_selection.set(f"%m"), year_selection.set(f"%Y")
 mood_choice = ttk.StringVar()
+year_choice.set(strftime("%Y")), month_choice.set(strftime("%m")), date_choice.set(strftime("%d"))
+
 
 # selection dropdown menu initiation
 date_dropdown = ttk.OptionMenu(selection_frame, date_choice, strftime("%d"), *date_options)
-month_view_dropdown = ttk.OptionMenu(selection_frame, month_selection, strftime(f"%m"), *month_options)
-year_view_dropdown = ttk.OptionMenu(selection_frame, year_selection, strftime(f"%Y"), *year_options)
+month_view_dropdown = ttk.OptionMenu(selection_frame, month_choice, strftime(f"%m"), *month_options)
+year_view_dropdown = ttk.OptionMenu(selection_frame, year_choice, strftime(f"%Y"), *year_options)
 
 mood_dropdown = ttk.OptionMenu(selection_frame, mood_choice, "0", *mood_score)
 save_btn = ttk.Button(selection_frame, text="Update", command=d.update_csv)
