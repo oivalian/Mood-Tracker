@@ -285,7 +285,7 @@ def main_initiate():
 # main window
 root = ttk.Window(themename="darkly")
 root.resizable(False, False)
-root.geometry("1660x880")
+root.geometry("")
 root.title("Mood Tracker")
 d = Data()
 
