@@ -53,6 +53,7 @@ class Data:
         self.mood = 0
         self.axis = None
         self.entry_count = None
+        self.plot_refresh = None
 
     def reset_dataframe(self):
         self.df = self.original_df.copy()
@@ -123,6 +124,8 @@ class Data:
             spine.set_visible(False) if spine_type in ["top", "right"] else None
 
     def plot(self):
+        if self.plot_refresh:
+            root.after_cancel(self.plot_refresh)
 
         self.select_options()
         fig.clf()
@@ -145,7 +148,8 @@ class Data:
         # refresh
         canvas.draw()
         self.get_values()
-        root.after(100, d.plot)
+
+        self.plot_refresh = root.after(100, self.plot)
 
     def get_values(self, analysis=None):
 
