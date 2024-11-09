@@ -184,12 +184,14 @@ class Data:
 
             # get best month (max counts between lvl 4 and lvl 6)
             top_month_df = self.df[(self.df["YEAR"] == self.year) & (self.df["MOOD_LVL"] >= 4) & (df["MOOD_LVL"] <= 6)]
-            monthly_count = top_month_df.groupby("MONTH").size().reset_index(name="COUNT").max()
+            monthly_count = top_month_df.groupby("MONTH").size().reset_index(name="COUNT")
+            best_month_row = monthly_count.loc[monthly_count["COUNT"].idxmax()] if not monthly_count.empty else None
 
-            # convert month to string
-            best_month = monthly_count["MONTH"]
-            if best_month in month_names:
-                best_month = month_names[best_month]
+            if best_month_row is not None:
+                best_month = month_names.get(best_month_row["MONTH"])
+            else:
+                best_month = "-"
+
             most_stable.set(best_month)
 
 
