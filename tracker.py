@@ -190,7 +190,6 @@ class Data:
             best_month = monthly_count["MONTH"]
             if best_month in month_names:
                 best_month = month_names[best_month]
-                most_stable.set(best_month)
             most_stable.set(best_month)
 
 
