@@ -215,7 +215,7 @@ def date_options_update(*args):
 
     days = month_days[month]
 
-    if isleap(year):
+    if month == isleap(year):
         days += 1
 
     date_options_updated = [f"{i:02}" for i in range(1, days + 1)]
@@ -351,5 +351,6 @@ selection_frame.grid(padx=20, pady=10)
 month_choice.trace("w", date_options_update)
 year_choice.trace("w", date_options_update)
 
+date_options_update()
 d.plot()
 root.mainloop()
